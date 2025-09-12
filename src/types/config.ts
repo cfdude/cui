@@ -27,7 +27,6 @@ export interface InterfaceConfig {
   language: string;
   notifications?: {
     enabled: boolean;
-    ntfyUrl?: string;
     webPush?: {
       subject?: string; // e.g. mailto:you@example.com
       vapidPublicKey?: string;

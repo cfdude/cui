@@ -318,9 +318,6 @@ export class ConfigService {
       if (n && typeof n.enabled !== 'boolean') {
         throw new Error('Invalid config: interface.notifications.enabled must be a boolean');
       }
-      if (n && n.ntfyUrl !== undefined && typeof n.ntfyUrl !== 'string') {
-        throw new Error('Invalid config: interface.notifications.ntfyUrl must be a string');
-      }
     }
   }
 

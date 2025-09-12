@@ -747,8 +747,7 @@ function InspectorApp() {
                       colorScheme: 'system',
                       language: 'en',
                       notifications: {
-                        enabled: false,
-                        ntfyUrl: 'https://ntfy.sh'
+                        enabled: false
                       }
                     }
                   }, null, 2)}

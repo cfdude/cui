@@ -14,12 +14,12 @@ export interface Notification {
 }
 
 /**
- * SECURITY PATCHED: Service for local-only notifications (external transmission disabled)
+ * Service for browser-native push notifications only (no external services)
+ * Uses standard Web Push API for privacy and security
  */
 export class NotificationService {
   private logger: Logger;
   private configService: ConfigService;
-  private machineId: string | null = null;
   private webPushService: WebPushService;
 
   constructor() {
@@ -27,110 +27,116 @@ export class NotificationService {
     this.configService = ConfigService.getInstance();
     this.webPushService = WebPushService.getInstance();
     
-    // SECURITY: Log warning about disabled external notifications
-    this.logger.info('External notifications disabled for security - all notifications are local only');
-  }
-
-  /**
-   * Get machine ID from config
-   */
-  private getMachineId(): string {
-    if (!this.machineId) {
-      try {
-        const config = this.configService.getConfig();
-        this.machineId = config.machine_id;
-      } catch (error) {
-        this.logger.error('Failed to get machine ID from config', error);
-        this.machineId = 'unknown';
-      }
-    }
-    return this.machineId;
+    this.logger.info('Using native browser notifications only (privacy-first approach)');
   }
 
   /**
    * Check if notifications are enabled
-   * SECURITY: Always returns false to prevent external transmission
    */
   private async isEnabled(): Promise<boolean> {
-    // SECURITY PATCH: Force disable all external notifications
-    return false;
-  }
-
-  /**
-   * Get the ntfy URL from preferences
-   * SECURITY: Always returns localhost to prevent external transmission
-   */
-  private async getNtfyUrl(): Promise<string> {
-    // SECURITY PATCH: Only allow localhost URLs
     const config = this.configService.getConfig();
-    const configuredUrl = config.interface.notifications?.ntfyUrl || '';
-    
-    // Only allow localhost URLs
-    if (configuredUrl.includes('localhost') || configuredUrl.includes('127.0.0.1')) {
-      return configuredUrl;
-    }
-    
-    // Default to localhost only
-    return 'http://localhost:8080';
+    return config.interface.notifications?.enabled ?? false;
   }
 
   /**
    * Send a notification for a permission request
-   * SECURITY: Only logs locally, no external transmission
+   * Uses native browser Web Push API only
    */
   async sendPermissionNotification(
     request: PermissionRequest,
     sessionId?: string,
     summary?: string
   ): Promise<void> {
-    // SECURITY: Only log locally, never send externally
-    this.logger.info('Permission notification (local only)', {
-      requestId: request.id,
-      toolName: request.toolName,
-      sessionId: sessionId || 'unknown',
-      summary: summary || 'No summary'
-    });
+    if (!(await this.isEnabled())) {
+      this.logger.debug('Notifications disabled, skipping permission notification');
+      return;
+    }
 
-    // Web push disabled for security
-    // No external transmission
+    try {
+      // Initialize web push if needed
+      await this.webPushService.initialize();
+      
+      if (!this.webPushService.getEnabled()) {
+        this.logger.debug('Web push not enabled, skipping notification');
+        return;
+      }
+
+      // Send via native browser push only
+      await this.webPushService.broadcast({
+        title: 'CUI Permission Request',
+        message: summary 
+          ? `${summary} - ${request.toolName}`
+          : `${request.toolName} tool: ${JSON.stringify(request.toolInput).substring(0, 100)}...`,
+        tag: 'cui-permission',
+        data: {
+          sessionId: sessionId || 'unknown',
+          streamingId: request.streamingId,
+          permissionRequestId: request.id,
+          type: 'permission',
+        },
+      });
+      
+      this.logger.info('Browser notification sent', {
+        requestId: request.id,
+        toolName: request.toolName,
+        method: 'web-push'
+      });
+    } catch (error) {
+      // Notifications failing should not break the app
+      this.logger.debug('Failed to send browser notification (non-critical)', {
+        error: (error as Error)?.message,
+        requestId: request.id
+      });
+    }
   }
 
   /**
    * Send a notification when a conversation ends
-   * SECURITY: Only logs locally, no external transmission
+   * Uses native browser Web Push API only
    */
   async sendConversationEndNotification(
     streamingId: string,
     sessionId: string,
     summary?: string
   ): Promise<void> {
-    // SECURITY: Only log locally, never send externally
-    this.logger.info('Conversation end notification (local only)', {
-      sessionId,
-      streamingId,
-      summary: summary || 'Task completed'
-    });
+    if (!(await this.isEnabled())) {
+      this.logger.debug('Notifications disabled, skipping conversation end notification');
+      return;
+    }
 
-    // Web push disabled for security
-    // No external transmission
-  }
+    try {
+      // Initialize web push if needed
+      await this.webPushService.initialize();
+      
+      if (!this.webPushService.getEnabled()) {
+        this.logger.debug('Web push not enabled, skipping notification');
+        return;
+      }
 
-  /**
-   * SECURITY: This method is disabled to prevent external transmission
-   */
-  private async sendNotification(
-    ntfyUrl: string,
-    topic: string,
-    notification: Notification
-  ): Promise<void> {
-    // SECURITY PATCH: Completely disabled
-    this.logger.debug('External notification blocked for security', {
-      wouldHaveSentTo: ntfyUrl,
-      topic,
-      title: notification.title
-    });
-    
-    // Do nothing - no external transmission
-    return;
+      // Send via native browser push only
+      await this.webPushService.broadcast({
+        title: 'Task Finished',
+        message: summary || 'Task completed',
+        tag: 'cui-complete',
+        data: {
+          sessionId,
+          streamingId,
+          type: 'conversation-end',
+        },
+      });
+      
+      this.logger.info('Browser notification sent', {
+        sessionId,
+        streamingId,
+        method: 'web-push'
+      });
+    } catch (error) {
+      // Notifications failing should not break the app
+      this.logger.debug('Failed to send browser notification (non-critical)', {
+        error: (error as Error)?.message,
+        sessionId,
+        streamingId
+      });
+    }
   }
 }
