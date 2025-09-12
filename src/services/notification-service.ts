@@ -14,7 +14,7 @@ export interface Notification {
 }
 
 /**
- * Service for sending push notifications via ntfy.sh
+ * SECURITY PATCHED: Service for local-only notifications (external transmission disabled)
  */
 export class NotificationService {
   private logger: Logger;
@@ -26,6 +26,9 @@ export class NotificationService {
     this.logger = createLogger('NotificationService');
     this.configService = ConfigService.getInstance();
     this.webPushService = WebPushService.getInstance();
+    
+    // SECURITY: Log warning about disabled external notifications
+    this.logger.info('External notifications disabled for security - all notifications are local only');
   }
 
   /**
@@ -46,178 +49,88 @@ export class NotificationService {
 
   /**
    * Check if notifications are enabled
+   * SECURITY: Always returns false to prevent external transmission
    */
   private async isEnabled(): Promise<boolean> {
-    const config = this.configService.getConfig();
-    return config.interface.notifications?.enabled ?? false;
+    // SECURITY PATCH: Force disable all external notifications
+    return false;
   }
 
   /**
    * Get the ntfy URL from preferences
+   * SECURITY: Always returns localhost to prevent external transmission
    */
   private async getNtfyUrl(): Promise<string> {
+    // SECURITY PATCH: Only allow localhost URLs
     const config = this.configService.getConfig();
-    return config.interface.notifications?.ntfyUrl || 'https://ntfy.sh';
+    const configuredUrl = config.interface.notifications?.ntfyUrl || '';
+    
+    // Only allow localhost URLs
+    if (configuredUrl.includes('localhost') || configuredUrl.includes('127.0.0.1')) {
+      return configuredUrl;
+    }
+    
+    // Default to localhost only
+    return 'http://localhost:8080';
   }
 
   /**
    * Send a notification for a permission request
+   * SECURITY: Only logs locally, no external transmission
    */
   async sendPermissionNotification(
     request: PermissionRequest,
     sessionId?: string,
     summary?: string
   ): Promise<void> {
-    if (!(await this.isEnabled())) {
-      this.logger.debug('Notifications disabled, skipping permission notification');
-      return;
-    }
+    // SECURITY: Only log locally, never send externally
+    this.logger.info('Permission notification (local only)', {
+      requestId: request.id,
+      toolName: request.toolName,
+      sessionId: sessionId || 'unknown',
+      summary: summary || 'No summary'
+    });
 
-    try {
-      const machineId = this.getMachineId();
-      const topic = `cui-${machineId}`;
-      const ntfyUrl = await this.getNtfyUrl();
-
-      const notification: Notification = {
-        title: 'CUI Permission Request',
-        message: summary 
-          ? `${summary} - ${request.toolName}`
-          : `${request.toolName} tool: ${JSON.stringify(request.toolInput).substring(0, 100)}...`,
-        priority: 'default',
-        tags: ['cui-permission'],
-        sessionId: sessionId || 'unknown',
-        streamingId: request.streamingId,
-        permissionRequestId: request.id
-      };
-
-      // Send via ntfy
-      await this.sendNotification(ntfyUrl, topic, notification);
-
-      // Also broadcast via native web push (best-effort)
-      try {
-        await this.webPushService.initialize();
-        if (this.webPushService.getEnabled()) {
-          await this.webPushService.broadcast({
-            title: notification.title,
-            message: notification.message,
-            tag: notification.tags[0],
-            data: {
-              sessionId: notification.sessionId,
-              streamingId: notification.streamingId,
-              permissionRequestId: notification.permissionRequestId,
-              type: 'permission',
-            },
-          });
-        }
-      } catch (err) {
-        this.logger.debug('Web push broadcast failed (non-fatal)', { error: (err as Error)?.message });
-      }
-      
-      this.logger.info('Permission notification sent', {
-        requestId: request.id,
-        toolName: request.toolName,
-        topic
-      });
-    } catch (error) {
-      this.logger.error('Failed to send permission notification', error, {
-        requestId: request.id
-      });
-    }
+    // Web push disabled for security
+    // No external transmission
   }
 
   /**
    * Send a notification when a conversation ends
+   * SECURITY: Only logs locally, no external transmission
    */
   async sendConversationEndNotification(
     streamingId: string,
     sessionId: string,
     summary?: string
   ): Promise<void> {
-    if (!(await this.isEnabled())) {
-      this.logger.debug('Notifications disabled, skipping conversation end notification');
-      return;
-    }
+    // SECURITY: Only log locally, never send externally
+    this.logger.info('Conversation end notification (local only)', {
+      sessionId,
+      streamingId,
+      summary: summary || 'Task completed'
+    });
 
-    try {
-      const machineId = this.getMachineId();
-      const topic = `cui-${machineId}`;
-      const ntfyUrl = await this.getNtfyUrl();
-
-      const notification: Notification = {
-        title: 'Task Finished',
-        message: summary || 'Task completed',
-        priority: 'default',
-        tags: ['cui-complete'],
-        sessionId,
-        streamingId
-      };
-
-      // Send via ntfy
-      await this.sendNotification(ntfyUrl, topic, notification);
-
-      // Also broadcast via native web push (best-effort)
-      try {
-        await this.webPushService.initialize();
-        if (this.webPushService.getEnabled()) {
-          await this.webPushService.broadcast({
-            title: notification.title,
-            message: notification.message,
-            tag: notification.tags[0],
-            data: {
-              sessionId: notification.sessionId,
-              streamingId: notification.streamingId,
-              type: 'conversation-end',
-            },
-          });
-        }
-      } catch (err) {
-        this.logger.debug('Web push broadcast failed (non-fatal)', { error: (err as Error)?.message });
-      }
-      
-      this.logger.info('Conversation end notification sent', {
-        sessionId,
-        streamingId,
-        topic
-      });
-    } catch (error) {
-      this.logger.error('Failed to send conversation end notification', error, {
-        sessionId,
-        streamingId
-      });
-    }
+    // Web push disabled for security
+    // No external transmission
   }
 
   /**
-   * Send a notification to ntfy
+   * SECURITY: This method is disabled to prevent external transmission
    */
   private async sendNotification(
     ntfyUrl: string,
     topic: string,
     notification: Notification
   ): Promise<void> {
-    const url = `${ntfyUrl}/${topic}`;
-    
-    const headers: Record<string, string> = {
-      'Title': notification.title,
-      'Priority': notification.priority,
-      'Tags': notification.tags.join(',')
-    };
-
-    // Add custom headers for CUI metadata
-    headers['X-CUI-SessionId'] = notification.sessionId;
-    headers['X-CUI-StreamingId'] = notification.streamingId;
-    if (notification.permissionRequestId) {
-      headers['X-CUI-PermissionRequestId'] = notification.permissionRequestId;
-    }
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: notification.message
+    // SECURITY PATCH: Completely disabled
+    this.logger.debug('External notification blocked for security', {
+      wouldHaveSentTo: ntfyUrl,
+      topic,
+      title: notification.title
     });
-
-    if (!response.ok) {
-      throw new Error(`Ntfy returned ${response.status}: ${await response.text()}`);
-    }
+    
+    // Do nothing - no external transmission
+    return;
   }
 }
