@@ -43,8 +43,8 @@ CUI is a web interface for the Claude CLI tool, consisting of:
 ## Development Setup
 
 ### Prerequisites
-- Node.js 20.x or 22.x
-- npm (comes with Node.js)
+- Node.js >= 20.19.0
+- Yarn 4.x (this project uses Yarn, not NPM)
 - Git
 
 ### Getting Started
@@ -57,46 +57,46 @@ CUI is a web interface for the Claude CLI tool, consisting of:
 
 2. Install dependencies:
    ```bash
-   npm ci
+   yarn install --frozen-lockfile
    ```
 
 3. Build the project (required before first test run):
    ```bash
-   npm run build
+   yarn build
    ```
 
 4. Start development server:
    ```bash
-   npm run dev  # Backend + frontend on port 3001
+   yarn dev  # Backend + frontend on port 3001
    ```
 
 ### Essential Commands
 
 ```bash
-npm run dev          # Start dev server
-npm run build        # Build both frontend and backend
-npm run test         # Run all tests
-npm run typecheck    # TypeScript type checking
-npm run lint         # ESLint checking
+yarn dev          # Start dev server
+yarn build        # Build both frontend and backend
+yarn test         # Run all tests
+yarn typecheck    # TypeScript type checking
+yarn lint         # ESLint checking
 ```
 
 ### Development Gotchas
 
-- Before running tests for the first time, run `npm run build` to build the MCP executable
-- Do not run `npm run dev` to verify frontend updates during testing
-- Enable debug logs with: `LOG_LEVEL=debug npm run dev`
+- Before running tests for the first time, run `yarn build` to build the MCP executable
+- Do not run `yarn dev` to verify frontend updates during testing
+- Enable debug logs with: `LOG_LEVEL=debug yarn dev`
 
 ## Testing Requirements
 
 ### Running Tests
 
 ```bash
-npm run test                # Run all tests
-npm run unit-tests          # Run unit tests only
-npm run integration-tests   # Run integration tests only
-npm run test:coverage       # Generate coverage report
-npm run test:watch          # Watch mode for TDD
-npm run test:debug          # Verbose output for debugging
+yarn test                # Run all tests
+yarn unit-tests          # Run unit tests only
+yarn integration-tests   # Run integration tests only
+yarn test:coverage       # Generate coverage report
+yarn test:watch          # Watch mode for TDD
+yarn test:debug          # Verbose output for debugging
 ```
 
 ### Test Coverage Requirements
@@ -109,7 +109,7 @@ All pull requests must meet the following coverage thresholds:
 
 The CI pipeline will automatically check these thresholds. To verify locally:
 ```bash
-npm run test:coverage
+yarn test:coverage
 ```
 
 ### Writing Tests
@@ -161,9 +161,9 @@ Use appropriate labels:
 1. **Before Creating a PR**:
    - Create an issue first to discuss the change
    - Fork the repository and create a feature branch
-   - Ensure all tests pass: `npm run test`
-   - Run linting: `npm run lint`
-   - Run type checking: `npm run typecheck`
+   - Ensure all tests pass: `yarn test`
+   - Run linting: `yarn lint`
+   - Run type checking: `yarn typecheck`
    - Add/update tests for your changes
    - Update documentation if needed
 

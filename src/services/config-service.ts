@@ -426,6 +426,32 @@ export class ConfigService {
   }
 
   /**
+   * Get interface configuration
+   * Convenience method for accessing interface settings
+   */
+  getInterface(): InterfaceConfig {
+    const config = this.getConfig();
+    return config.interface;
+  }
+
+  /**
+   * Update interface configuration
+   * Convenience method for updating only interface settings
+   */
+  async updateInterface(updates: Partial<InterfaceConfig>): Promise<void> {
+    const current = this.getConfig();
+    await this.updateConfig({
+      interface: {
+        ...current.interface,
+        ...updates,
+        notifications: updates.notifications
+          ? { ...current.interface.notifications, ...updates.notifications }
+          : current.interface.notifications
+      }
+    });
+  }
+
+  /**
    * Reset singleton instance (for testing)
    */
   static resetInstance(): void {

@@ -76,7 +76,7 @@ export class ClaudeRouterService {
       this.Server = (module as unknown as { default: RouterServerConstructor }).default;
     } catch (_error) {
       this.logger.warn('@musistudio/llms package not installed. Router service disabled.');
-      this.logger.debug('Install with: npm install @musistudio/llms');
+      this.logger.debug('Install with: yarn add @musistudio/llms');
       return;
     }
 

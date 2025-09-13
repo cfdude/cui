@@ -1,6 +1,6 @@
 import { Router, Request } from 'express';
 import { ConfigService } from '@/services/config-service.js';
-import type { CUIConfig } from '@/types/config.js';
+import type { CUIConfig, InterfaceConfig } from '@/types/config.js';
 import { createLogger } from '@/services/logger.js';
 
 export function createConfigRoutes(service: ConfigService): Router {
@@ -22,6 +22,26 @@ export function createConfigRoutes(service: ConfigService): Router {
       res.json(service.getConfig());
     } catch (error) {
       logger.error('Failed to update config', error);
+      next(error);
+    }
+  });
+
+  // Interface-only endpoints for backward compatibility
+  router.get('/interface', (req, res, next) => {
+    try {
+      res.json(service.getInterface());
+    } catch (error) {
+      logger.error('Failed to get interface config', error);
+      next(error);
+    }
+  });
+
+  router.put('/interface', async (req: Request<Record<string, never>, unknown, Partial<InterfaceConfig>>, res, next) => {
+    try {
+      await service.updateInterface(req.body);
+      res.json(service.getInterface());
+    } catch (error) {
+      logger.error('Failed to update interface config', error);
       next(error);
     }
   });

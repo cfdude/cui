@@ -33,11 +33,12 @@ A modern web UI for your agents. Start the server and access your agents anywher
 1. With Node.js >= 20.19.0, start the server:
 
     ```bash
-    npx cui-server
+    yarn dlx cui-server
     ```
     or install it globally:
     ```bash
-    npm install -g cui-server
+    yarn global add cui-server
+    cui-server
     ```
 
 2. Open http://localhost:3001/#your-token in your browser (the token will be displayed in the cui-server command output).
@@ -68,7 +69,7 @@ cui uses [Gemini 2.5 Flash](https://deepmind.google/models/gemini/flash/) to pro
 
 ### Notifications
 
-You can receive push notifications when your task is finished or when Claude is waiting for your permission to use tools. Notifications are sent using either [ntfy](https://ntfy.sh/) or native [web-push](https://www.npmjs.com/package/web-push). To receive them, follow the instructions in the settings.
+You can receive push notifications when your task is finished or when Claude is waiting for your permission to use tools. Notifications are sent using native browser notifications only - no external services are used. To enable notifications, allow them when prompted in your browser settings.
 
 ### Keyboard Shortcuts
 
@@ -91,10 +92,12 @@ All inline syntaxes like `/init` or `@file.txt` are supported just like in the C
 
 All configuration and data are stored in `~/.cui/`.
 
-- `config.json` - Server and interface settings
+- `config.json` - Unified configuration file containing both server and interface settings
 - `session-info.db` - Session metadata
 
-To uninstall cui, simply delete the `~/.cui/` directory and remove the package with `npm uninstall -g cui-server`.
+**Note**: As of v0.7.0, configuration has been simplified to a single `config.json` file. If you have an older installation with separate `preferences.json`, it will be automatically migrated on first run.
+
+To uninstall cui, simply delete the `~/.cui/` directory and remove the package with `yarn global remove cui-server`.
 
 ## Contributing
 

@@ -31,20 +31,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
-          npm install -D lightningcss-linux-x64-gnu @tailwindcss/oxide-linux-x64-gnu
+          yarn install --frozen-lockfile
+          yarn install -D lightningcss-linux-x64-gnu @tailwindcss/oxide-linux-x64-gnu
 
       - name: Run linting
-        run: npm run lint
+        run: yarn lint
 
       - name: Run type checking
-        run: npm run typecheck
+        run: yarn typecheck
 
       - name: Build project
-        run: npm run build
+        run: yarn build
 
       - name: Run tests
-        run: npm test
+        run: yarn test
 
       - name: Upload build artifact (dist)
         if: ${{ inputs.upload-artifact }}

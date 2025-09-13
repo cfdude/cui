@@ -74,20 +74,20 @@ const { ClaudeProcessManager } = await import('@/services/claude-process-manager
 
 ```bash
 # Run specific test files
-npm test -- claude-process-manager.test.ts
-npm test -- tests/unit/
+yarn test claude-process-manager.test.ts
+yarn test tests/unit/
 
 # Run tests matching a pattern
-npm test -- --testNamePattern="should start conversation"
+yarn test --testNamePattern="should start conversation"
 
 # Run unit tests only
-npm run unit-tests
+yarn unit-tests
 
 # Run integration tests only
-npm run integration-tests
+yarn integration-tests
 
 # Run with coverage
-npm run test:coverage
+yarn test:coverage
 ```
 
 ## Development Practices
