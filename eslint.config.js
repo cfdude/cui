@@ -51,6 +51,48 @@ export default [
     }
   },
   {
+    files: ['src/web/**/*.ts', 'src/web/**/*.tsx'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        project: ['./tsconfig.json', './tsconfig.web.json']
+      },
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        // Node globals (for build tools)
+        process: 'readonly',
+        console: 'readonly',
+        // Fetch API
+        fetch: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        Headers: 'readonly',
+        FormData: 'readonly',
+        AbortController: 'readonly',
+        AbortSignal: 'readonly'
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tseslint
+    },
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
+      'no-console': ['warn', { allow: ['warn', 'error'] }]
+    }
+  },
+  {
     files: ['**/*.test.ts', '**/*.test.tsx', '**/tests/**/*'],
     languageOptions: {
       globals: {

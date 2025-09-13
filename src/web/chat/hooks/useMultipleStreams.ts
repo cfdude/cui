@@ -208,8 +208,8 @@ export function useMultipleStreams(
           }
         }
       }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
+    } catch (error: unknown) {
+      if ((error as Error).name !== 'AbortError') {
         console.error(`Stream error for ${streamingId}:`, error);
         
         connection.connectionState = 'error';

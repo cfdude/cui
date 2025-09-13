@@ -3,6 +3,7 @@ import { SystemStatusResponse, CUIError, CommandsResponse } from '@/types/index.
 import { RequestWithRequestId } from '@/types/express.js';
 import { ClaudeProcessManager } from '@/services/claude-process-manager.js';
 import { ClaudeHistoryReader } from '@/services/claude-history-reader.js';
+import { ModelInfoService } from '@/services/model-info-service.js';
 import { createLogger, type Logger } from '@/services/logger.js';
 import { getAvailableCommands } from '@/services/commands-service.js';
 import { ConfigService } from '@/services/config-service.js';
@@ -10,7 +11,8 @@ import { execSync } from 'child_process';
 
 export function createSystemRoutes(
   processManager: ClaudeProcessManager,
-  historyReader: ClaudeHistoryReader
+  historyReader: ClaudeHistoryReader,
+  modelInfoService?: ModelInfoService
 ): Router {
   const router = Router();
   const logger = createLogger('SystemRoutes');
@@ -71,6 +73,46 @@ export function createSystemRoutes(
       res.json(response);
     } catch (error) {
       logger.debug('Get commands failed', {
+        requestId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      next(error);
+    }
+  });
+
+  // Get available models
+  router.get('/models', async (req: RequestWithRequestId, res, next) => {
+    const requestId = req.requestId;
+    logger.debug('Get models request', { requestId });
+    
+    try {
+      // If modelInfoService is not available, return fallback data
+      if (!modelInfoService) {
+        logger.warn('ModelInfoService not available, returning fallback data');
+        res.json({
+          models: [
+            { value: 'default', label: 'Default', description: 'Recommended adaptive model' },
+            { value: 'sonnet', label: 'Sonnet', description: 'Latest Sonnet for daily coding tasks' },
+            { value: 'opus', label: 'Opus', description: 'Most capable for complex reasoning' }
+          ],
+          defaultModel: 'sonnet',
+          lastUpdated: new Date().toISOString(),
+          fromCache: true
+        });
+        return;
+      }
+      
+      const modelData = modelInfoService.getModelData();
+      
+      logger.debug('Models retrieved', {
+        requestId,
+        modelCount: modelData.models.length,
+        fromCache: modelData.fromCache
+      });
+      
+      res.json(modelData);
+    } catch (error) {
+      logger.error('Get models failed', {
         requestId,
         error: error instanceof Error ? error.message : String(error)
       });

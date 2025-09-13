@@ -73,7 +73,7 @@ export function useAuth(): void {
       // Clear fragment from URL
       clearFragment();
       
-      console.log('Authentication token stored successfully');
+      console.warn('Authentication token stored successfully');
     }
   }, []);
 }

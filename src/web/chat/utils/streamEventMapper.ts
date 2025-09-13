@@ -3,7 +3,7 @@ import type { StreamEvent, StreamStatus } from '../types';
 /**
  * Maps stream events to user-friendly status messages
  */
-export function mapStreamEventToStatus(event: StreamEvent, currentStatus?: StreamStatus): Partial<StreamStatus> {
+export function mapStreamEventToStatus(event: StreamEvent, _currentStatus?: StreamStatus): Partial<StreamStatus> {
   const updates: Partial<StreamStatus> = {
     lastEvent: event,
     lastEventTime: new Date().toISOString(),

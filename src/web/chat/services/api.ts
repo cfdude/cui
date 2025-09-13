@@ -8,10 +8,12 @@ import type {
   PermissionRequest,
   PermissionDecisionRequest,
   PermissionDecisionResponse,
+  SystemStatusResponse,
   FileSystemListQuery,
   FileSystemListResponse,
   CommandsResponse,
 } from '../types';
+import type { CUIConfig } from '@/types/config';
 import { getAuthToken } from '../../hooks/useAuth';
 type GeminiHealthResponse = { status: 'healthy' | 'unhealthy'; message: string; apiKeyValid: boolean };
 
@@ -26,7 +28,7 @@ class ApiService {
     const method = options?.method || 'GET';
     
     // Log request
-    console.log(`[API] ${method} ${fullUrl}`, options?.body ? JSON.parse(options.body as string) : '');
+    console.warn(`[API] ${method} ${fullUrl}`, options?.body ? JSON.parse(options.body as string) : '');
     
     // Get auth token for Bearer authorization
     const authToken = getAuthToken();
@@ -38,29 +40,24 @@ class ApiService {
       headers.set('Authorization', `Bearer ${authToken}`);
     }
     
-    try {
-      const response = await fetch(fullUrl, {
-        ...options,
-        headers,
-      });
+    const response = await fetch(fullUrl, {
+      ...options,
+      headers,
+    });
 
-      const data = await response.json();
-      
-      // Log response
-      console.log(`[API Response] ${fullUrl}:`, data);
+    const data = await response.json();
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized');
-        }
-        throw new Error((data as ApiError).error || `HTTP ${response.status}`);
+    // Log response
+    console.warn(`[API Response] ${fullUrl}:`, data);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized');
       }
-
-      return data;
-    } catch (error) {
-      // console.error(`[API Error] ${fullUrl}:`, error);
-      throw error;
+      throw new Error((data as ApiError).error || `HTTP ${response.status}`);
     }
+
+    return data;
   }
 
   async getConversations(params?: {
@@ -165,7 +162,7 @@ class ApiService {
     return this.apiCall(`/api/system/commands?${searchParams}`);
   }
 
-  async getSystemStatus(): Promise<any> {
+  async getSystemStatus(): Promise<SystemStatusResponse> {
     return this.apiCall('/api/system/status');
   }
 
@@ -205,11 +202,11 @@ class ApiService {
     return this.apiCall<GeminiHealthResponse>('/api/gemini/health');
   }
 
-  async getConfig(): Promise<any> {
+  async getConfig(): Promise<CUIConfig> {
     return this.apiCall('/api/config');
   }
 
-  async updateConfig(updates: Partial<any>): Promise<any> {
+  async updateConfig(updates: Partial<CUIConfig>): Promise<CUIConfig> {
     return this.apiCall('/api/config', {
       method: 'PUT',
       body: JSON.stringify(updates),
@@ -239,6 +236,10 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({}),
     });
+  }
+
+  async getModels(): Promise<{ models: string[]; defaultModel: string }> {
+    return this.apiCall('/api/models');
   }
 
   // For endpoints that need direct fetch with auth (like SSE streams)

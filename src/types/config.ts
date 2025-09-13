@@ -22,6 +22,16 @@ export interface GeminiConfig {
   model?: string;
 }
 
+export interface ModelOption {
+  value: string;
+  label: string;
+  description: string;
+}
+
+export interface ModelsConfig {
+  [provider: string]: ModelOption[];
+}
+
 export interface InterfaceConfig {
   colorScheme: 'light' | 'dark' | 'system';
   language: string;
@@ -68,6 +78,12 @@ export interface CUIConfig {
    * Interface preferences and settings
    */
   interface: InterfaceConfig;
+
+  /**
+   * Model configurations by provider
+   * Example: { "claude-code": [...], "openai": [...] }
+   */
+  models?: ModelsConfig;
 }
 
 /**

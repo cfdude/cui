@@ -46,7 +46,7 @@ export function countLines(content: string): number {
 /**
  * Format tool input parameters for display in labels
  */
-export function formatToolInput(input: any, maxLength: number = 50): string {
+export function formatToolInput(input: unknown, maxLength: number = 50): string {
   if (!input || typeof input !== 'object') {
     return String(input || '');
   }
@@ -123,7 +123,7 @@ export function extractDomain(url: string): string {
   try {
     const urlObj = new URL(url);
     return urlObj.hostname;
-  } catch (e) {
+  } catch (_e) {
     return url;
   }
 }

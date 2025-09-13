@@ -22,6 +22,7 @@ import { NotificationService } from './services/notification-service.js';
 import { WebPushService } from './services/web-push-service.js';
 import { geminiService } from './services/gemini-service.js';
 import { ClaudeRouterService } from './services/claude-router-service.js';
+import { ModelInfoService } from './services/model-info-service.js';
 import { 
   StreamEvent,
   CUIError,
@@ -68,6 +69,7 @@ export class CUIServer {
   private notificationService: NotificationService;
   private webPushService: WebPushService;
   private routerService?: ClaudeRouterService;
+  private modelInfoService: ModelInfoService;
   private logger: Logger;
   private port: number;
   private host: string;
@@ -110,6 +112,7 @@ export class CUIServer {
     this.workingDirectoriesService = new WorkingDirectoriesService(this.historyReader, this.logger);
     this.notificationService = new NotificationService();
     this.webPushService = WebPushService.getInstance();
+    this.modelInfoService = new ModelInfoService();
     
     // Wire up notification service
     this.processManager.setNotificationService(this.notificationService);
@@ -166,6 +169,11 @@ export class CUIServer {
       this.logger.debug('Initializing Gemini service');
       await geminiService.initialize();
       this.logger.debug('Gemini service initialized successfully');
+
+      // Initialize model info service (non-blocking - don't fail server startup)
+      this.logger.debug('Initializing model info service');
+      await this.modelInfoService.initialize();
+      this.logger.debug('Model info service initialized');
 
       // Initialize router service if configured
       await this.initializeOrReloadRouter(config);
@@ -305,8 +313,8 @@ export class CUIServer {
         if (this.server) {
           this.server.on('error', (error: Error) => {
             this.logger.error('Failed to start HTTP server:', error, {
-              errorCode: (error as any).code,
-              errorSyscall: (error as any).syscall,
+              errorCode: (error as NodeJS.ErrnoException).code,
+              errorSyscall: (error as NodeJS.ErrnoException).syscall,
               port: this.port,
               host: this.host
             });
@@ -452,8 +460,8 @@ export class CUIServer {
 
   private setupRoutes(): void {
     // System routes (includes health check) - before auth
-    this.app.use('/api/system', createSystemRoutes(this.processManager, this.historyReader));
-    this.app.use('/', createSystemRoutes(this.processManager, this.historyReader)); // For /health at root
+    this.app.use('/api/system', createSystemRoutes(this.processManager, this.historyReader, this.modelInfoService));
+    this.app.use('/', createSystemRoutes(this.processManager, this.historyReader, this.modelInfoService)); // For /health at root
     
     // Permission routes - before auth (needed for MCP server communication)
     this.app.use('/api/permissions', createPermissionRoutes(this.permissionTracker));

@@ -54,6 +54,7 @@
   "dependencies": {
     "@anthropic-ai/claude-code": "^1.0.112",
     "@anthropic-ai/sdk": "^0.62.0",
+    "@esbuild/darwin-arm64": "^0.25.9",
     "@google/genai": "^1.19.0",
     "@modelcontextprotocol/sdk": "^1.18.0",
     "@musistudio/llms": "^1.0.32",
@@ -67,6 +68,8 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@rollup/rollup-darwin-arm64": "^4.50.1",
+    "@rollup/rollup-darwin-x64": "^4.50.1",
     "@types/prismjs": "^1.26.5",
     "better-sqlite3": "^12.2.0",
     "class-variance-authority": "^0.7.1",

@@ -151,7 +151,7 @@ export function useAudioRecording(): UseAudioRecordingReturn {
           });
           
           // Log recording size information
-          console.log(`Audio recording completed:`, {
+          console.warn(`Audio recording completed:`, {
             size: `${audioBlob.size} bytes (${(audioBlob.size / 1024).toFixed(2)} KB)`,
             duration: `${Math.floor((Date.now() - startTimeRef.current) / 1000)}s`,
             format: 'audio/webm;codecs=opus'
@@ -182,7 +182,7 @@ export function useAudioRecording(): UseAudioRecordingReturn {
           
           reader.readAsDataURL(audioBlob);
           
-        } catch (err) {
+        } catch (_err) {
           setError('Failed to process recorded audio');
           setState('idle');
           resolve(null);

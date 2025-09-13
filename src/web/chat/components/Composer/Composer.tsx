@@ -53,6 +53,7 @@ export interface ComposerProps {
   model?: string;
   onModelChange?: (model: string) => void;
   availableModels?: string[];
+  defaultModel?: string;
 
   // Permission handling
   permissionRequest?: PermissionRequest | null;
@@ -148,12 +149,14 @@ function DirectoryDropdown({
 interface ModelDropdownProps {
   selectedModel: string;
   availableModels: string[];
+  defaultModel?: string;
   onModelSelect: (model: string) => void;
 }
 
 function ModelDropdown({
   selectedModel,
   availableModels,
+  defaultModel,
   onModelSelect
 }: ModelDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -175,11 +178,19 @@ function ModelDropdown({
   // Create options from available models
   const options: DropdownOption<string>[] = availableModels.map(model => ({
     value: model,
-    label: model === 'default' ? 'Default' : model.charAt(0).toUpperCase() + model.slice(1),
+    label: model === 'default' && defaultModel 
+      ? `Default (${defaultModel.charAt(0).toUpperCase() + defaultModel.slice(1)})` 
+      : model === 'default' 
+        ? 'Default' 
+        : model.charAt(0).toUpperCase() + model.slice(1),
   }));
 
   // Get display text for the selected model
-  const displayText = selectedModel === 'default' ? 'Default' : selectedModel.charAt(0).toUpperCase() + selectedModel.slice(1);
+  const displayText = selectedModel === 'default' && defaultModel
+    ? `Default (${defaultModel.charAt(0).toUpperCase() + defaultModel.slice(1)})`
+    : selectedModel === 'default' 
+      ? 'Default' 
+      : selectedModel.charAt(0).toUpperCase() + selectedModel.slice(1);
 
   return (
     <DropdownSelector
@@ -312,6 +323,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(function Composer
   model = 'default',
   onModelChange,
   availableModels = ['default', 'opus', 'sonnet'],
+  defaultModel,
   permissionRequest,
   onPermissionDecision,
   onStop,
@@ -907,6 +919,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(function Composer
                     <ModelDropdown
                       selectedModel={selectedModel}
                       availableModels={availableModels}
+                      defaultModel={defaultModel}
                       onModelSelect={handleModelSelect}
                     />
                   )}

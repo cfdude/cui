@@ -119,10 +119,10 @@ export function useStreaming(
           }
         }
       }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
+    } catch (error: unknown) {
+      if ((error as Error).name !== 'AbortError') {
         console.error('Stream error:', error);
-        optionsRef.current.onError?.(error);
+        optionsRef.current.onError?.(error as Error);
       }
     } finally {
       const wasIntentional = !shouldReconnect;

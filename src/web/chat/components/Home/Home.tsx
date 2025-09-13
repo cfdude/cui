@@ -22,6 +22,8 @@ export function Home() {
   } = useConversations();
   const [activeTab, setActiveTab] = useState<'tasks' | 'history' | 'archive'>('tasks');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availableModels, setAvailableModels] = useState<string[]>(['default', 'opus', 'sonnet']);
+  const [defaultModel, setDefaultModel] = useState<string>('default');
   const conversationCountRef = useRef(conversations.length);
   const composerRef = useRef<ComposerRef>(null);
 
@@ -29,6 +31,19 @@ export function Home() {
   useEffect(() => {
     conversationCountRef.current = conversations.length;
   }, [conversations.length]);
+
+  // Fetch available models on mount
+  useEffect(() => {
+    api.getModels()
+      .then(({ models, defaultModel: defaultModelName }) => {
+        setAvailableModels(models);
+        setDefaultModel(defaultModelName);
+      })
+      .catch((error) => {
+        console.error('Failed to fetch models:', error);
+        // Keep using fallback values
+      });
+  }, []);
 
   // Get filter parameters based on active tab
   const getFiltersForTab = (tab: 'tasks' | 'history' | 'archive') => {
@@ -155,6 +170,8 @@ export function Home() {
                   enableFileAutocomplete={true}
                   recentDirectories={recentDirectories}
                   getMostRecentWorkingDirectory={getMostRecentWorkingDirectory}
+                  availableModels={availableModels}
+                  defaultModel={defaultModel}
                   onDirectoryChange={(directory) => {
                     // Focus input after directory change
                     setTimeout(() => {
